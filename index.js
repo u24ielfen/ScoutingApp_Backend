@@ -5,89 +5,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 const db = mysql.createConnection({
-  host: "localhost",
+  host: "192.168.68.151",
   port: "3306",
   user: "root",
   password: "",
-  database: "robotics",
-});
-app.post("/putTeamMatch", (req, res) => {
-  const team_number = req.body.team_number;
-  const team_name = req.body.team_name;
-  const auto_points = req.body.auto_points;
-  const teleop_points = req.body.teleop_points;
-  const climb_level = req.body.climb_level;
-  const drive_train = req.body.drive_train;
-  const drive_motors = req.body.drive_motors;
-  const point_consistency = req.body.point_consistency;
-  const climb_consistency = req.body.climb_consistency;
-  const is_DefenseBot = req.body.is_DefenseBot;
-  const shoot_height = req.body.shoot_height;
-  const notes = req.body.notes;
-  const SQL =
-    "INSERT INTO `pitscout`(`team_number`, `auto_points`, `teleop_points`, `climb_level`, `drive_train`, `drive_motors`, `point_consistency`, `climb_consistency`, `team_name`, `is_DefenseBot`, `shoot_height`, `notes`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  db.query(
-    SQL,
-    [
-      team_number,
-      auto_points,
-      teleop_points,
-      climb_level,
-      drive_train,
-      drive_motors,
-      point_consistency,
-      climb_consistency,
-      team_name,
-      is_DefenseBot,
-      shoot_height,
-      notes,
-    ],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        res.status(500).send("Error inserting data into database");
-      } else {
-        res.status(200).send("Data inserted successfully");
-      }
-    }
-  );
-});
-
-app.post("/putTeamMatch", (req, res) => {
-  const team_number = req.body.team_number;
-  const team_name = req.body.team_name;
-  const auto_points = req.body.auto_points;
-  const teleop_points = req.body.teleop_points;
-  const climb_level = req.body.climb_level;
-  const drive_train = req.body.drive_train;
-  const drive_motors = req.body.drive_motors;
-  const point_consistency = req.body.point_consistency;
-  const climb_consistency = req.body.climb_consistency;
-  // const starting_pos = req.body.starting_pos;
-  const is_DefenseBot = req.body.is_DefenseBot;
-  const shoot_height = req.body.shoot_height;
-  const notes = req.body.notes;
-  const SQL =
-    "INSERT INTO `pitscout`(`team_number`, `auto_points`, `teleop_points`, `climb_level`, `drive_train`, `drive_motors`, `point_consistency`, `climb_consistency`, `team_name`, `is_DefenseBot`, `shoot_height`, `notes`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  db.query(
-    SQL,
-    [
-      team_number,
-      auto_points,
-      teleop_points,
-      climb_level,
-      drive_train,
-      drive_motors,
-      point_consistency,
-      climb_consistency,
-      // starting_pos,
-      team_name,
-      is_DefenseBot,
-      shoot_height,
-      notes,
-    ],
-    (err, result) => {}
-  );
+  database: "test",
 });
 app.get("/getAverageStats", (req, res) => {
   db.query("SELECT * FROM pitscout", (err, result) => {
@@ -127,14 +49,45 @@ app.get("/getAverageAutoBallShot/:team_number", (req, res) => {
   );
 });
 
-app.get("/getAverageAutoBallShot", (req, res) => {
-  db.query("SELECT AVG(auto_Balls_shot) FROM matchscout", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
+app.get("/getAverageTeleopBallSuccess/:team_number", (req, res) => {
+  const team_number = req.params.team_number;
+  db.query(
+    `SELECT AVG(teleop_Balls_success) FROM matchscout WHERE team_number = '${team_number}'`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
     }
-  });
+  );
+});
+
+app.get("/getAverageTeleopBallShot/:team_number", (req, res) => {
+  const team_number = req.params.team_number;
+  db.query(
+    `SELECT AVG(teleop_Balls_shot) FROM matchscout WHERE team_number = '${team_number}'`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+app.get("/getAverageClimbTime/:team_number", (req, res) => {
+  const team_number = req.params.team_number;
+  db.query(
+    `SELECT AVG(climb_time) FROM matchscout WHERE team_number = '${team_number}'`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
 });
 
 app.post("/putMatch", (req, res) => {
