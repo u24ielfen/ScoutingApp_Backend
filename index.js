@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 const db = mysql.createConnection({
-  host: "192.168.68.151",
+  host: "10.70.1.129",
   port: "3306",
   user: "root",
   password: "",
@@ -19,6 +19,26 @@ app.get("/getAverageStats", (req, res) => {
       res.send(result);
     }
   });
+});
+
+app.get("/getStats/:id/:id2", (req, res) => {
+  const teamNum = req.params.id;
+  const teamNum2 = req.params.id2;
+  db.query(
+    `SELECT match_number, 
+            MAX(CASE WHEN team_number = '${teamNum}' THEN auto_Balls_success END) AS '${teamNum}',
+            MAX(CASE WHEN team_number = '${teamNum2}' THEN auto_Balls_success END) AS '${teamNum2}'
+     FROM matchscout 
+     WHERE team_number = '${teamNum}' OR team_number = '${teamNum2}'
+     GROUP BY match_number`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
 });
 
 app.get("/getAverageAutoBallSuccess/:team_number", (req, res) => {
@@ -116,9 +136,18 @@ app.get("/getMatchList", (req, res) => {
     }
   });
 });
-// app.get("/getOneMatch"){
-//   db.query("SELECT * FROM `matches`")
-// }
+app.get("/checkMatch", (req, res) => {
+  const matchType = req.query.type;
+  const matchNumber = req.query.number;
+  const SQL = `SELECT * FROM matches WHERE match_type = '${matchType}' AND match_number = '${matchNumber}'`;
+  db.query(SQL, (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
 
 app.get("/getTeams", (req, res) => {
   const SQL = "SELECT * FROM pitscout ORDER BY team_number ASC";
@@ -210,6 +239,7 @@ app.post("/putPit", (req, res) => {
 
 app.post("/putMatchBot", (req, res) => {
   const match_id = req.body.match_id;
+  const match_type = req.body.match_type;
   const team_number = req.body.team_number;
   const auto_Balls_shot = req.body.auto_Balls_shot;
   const auto_Balls_success = req.body.auto_Balls_success;
@@ -221,10 +251,11 @@ app.post("/putMatchBot", (req, res) => {
   const went_To_Enemy = req.body.went_To_Enemy;
   const notes = req.body.notes;
   const SQL =
-    "INSERT INTO `matchscout`(`match_number`, `team_number`, `auto_Balls_shot`, `auto_Balls_success`, `teleop_Balls_shot`, `teleop_Balls_success`, `was_Defense`, `climb_height`, `climb_time`, `went_To_Enemy`, `notes`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    "INSERT INTO `matchscout`(`match_number`, `team_number`, `auto_Balls_shot`, `auto_Balls_success`, `teleop_Balls_shot`, `teleop_Balls_success`, `was_Defense`, `climb_height`, `climb_time`, `went_To_Enemy`, `notes`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   db.query(
     SQL,
     [
+      match_type,
       match_id,
       team_number,
       auto_Balls_shot,
